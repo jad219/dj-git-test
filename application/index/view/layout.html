@@ -1,0 +1,58 @@
+{include file="block/header" /}
+<div class="layui-layout layui-layout-admin">
+    {include file="block/menu" /}
+
+    <div class="layui-body my-body">
+        <div class="layui-tab layui-tab-card my-tab" lay-filter="card" lay-allowClose="true" style="margin-top: 0px;">
+            <ul class="layui-tab-title">
+                <li class="layui-this" lay-id="1"><span><i class="layui-icon">&#xe638;</i>欢迎页</span></li>
+            </ul>
+            <div class="layui-tab-content">
+                <div class="layui-tab-item layui-show">
+                    <table class="layui-table">
+                        <colgroup>
+                            <col width="150">
+                            <col width="200">
+                            <col>
+                        </colgroup>
+                        <thead>
+                        <tr>
+                            <th>名称</th>
+                            <th>属性</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>服务器当前时间</td>
+                            <td><?PHP echo date("Y-m-d G:i:s");?></td>
+                        </tr>
+                        <tr>
+                            <td>服务器版本</td>
+                            <td><?PHP echo $_SERVER ['SERVER_SOFTWARE']; ?></td>
+                        </tr>
+                        <tr>
+                            <td>服务器操作系统</td>
+                            <td><?PHP echo PHP_OS; ?></td>
+                        </tr>
+                        <tr>
+                            <td>PHP版本</td>
+                            <td><?PHP echo PHP_VERSION; ?></td>
+                        </tr>
+                        <tr>
+                            <td>最大执行时间</td>
+                            <td><?PHP echo get_cfg_var("max_execution_time")."秒 "; ?></td>
+                        </tr>
+                        <tr>
+                            <td>脚本运行占用最大内存</td>
+                            <td><?PHP
+                        echo get_cfg_var ("memory_limit")?get_cfg_var("memory_limit"):"无"
+                        ?></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{include file="block/footer" /}

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>题库管理</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="../../static/layui/css/layui.css"  media="all">
+    <!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
+</head>
+<body>
+<div style="margin-bottom: 5px;">
+    <!-- 示例-970 -->
+    <ins class="adsbygoogle" style="display:inline-block;width:970px;height:10px" data-ad-client="ca-pub" data-ad-slot="3820120620"></ins>
+</div>
+<div class="layui-main">
+    <a class="layui-btn layui-btn-xs" lay-event="add" id="btn-add">添加新问题</a>
+
+    <table class="layui-hide" id="test" lay-filter="demo"></table>
+</div>
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+<!--添加题目弹出层-->
+<div id="set-add-qsn" style="display:none; width:550px; padding:20px;">
+    <form class="layui-form" lay-filter="qsn_form">
+        <div class="layui-form-item">
+            <label class="layui-form-label">题目内容</label>
+            <div class="layui-input-block">
+                <input type="text" name="q_detail" required lay-verify="required" placeholder="请输入题目内容" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">请选择问题的类型:</label>
+            <div class="layui-input-block">
+                <select name="q_type" id="q_type" lay-verify="required" style="width: 212px;">
+                    <option value=""></option>
+                    <option value="1">单选题</option>
+                    <option value="2">多选题</option>
+                    <option value="3">填空题</option>
+                </select>
+            </div>
+            <br/>
+            <div class="layui-input-block" id="input_qus" name="input_qus">
+
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+
+                <button type="button" class="layui-btn" id="add_op">添加答案</button>
+                <button type="button" class="layui-btn" id="del_op">减少答案</button>
+                <button type="button" class="layui-btn" lay-submit lay-filter="formDemo" id="commit">提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script src="../../static/layui/layui.js" charset="utf-8"></script>
+<!-- 注意：如果你直接复制所有代码到本地，上述js路径需要改成你本地的 -->
+<script>
+    layui.use(['element','table','form','layer'], function(){
+        var $ = layui.jquery;
+        var table = layui.table;
+        var form = layui.form;
+        var element = layui.element;
+        table.render({
+            elem: '#test'
+            ,url:'/index/index/get_question/'
+            ,width: 735
+            ,height:472
+            ,cols: [[
+                {field:'q_id', width:80, title: 'ID',fixed:'left',sort:true}
+                ,{field:'q_detail', width:400, title: '问题描述'}
+                ,{field:'q_type', width:100, title: '类型'}
+                ,{fixed: 'right', title:'操作', toolbar: '#barDemo', width:150}
+            ]]
+            ,page: true
+        });
+        //监听工具条
+        table.on('tool(demo)', function(obj){
+            var data_all = obj.data;
+            if(obj.event === 'del'){
+                layer.confirm('真的删除行么?', function(index){
+                    obj.del();
+                    var url = "{:url('/index/index/del_question')}";
+                    var data1 = {
+                        q_id: data_all['q_id'] //将当前选中行的q_id传到后端
+                    }
+                    $.post(url, data1, function(data) {
+                        layer.close(layer.index); //关闭加载中弹窗
+                        if (data.code == 1) {
+                            layer.msg(data.msg, {
+                                icon: 6
+                            });
+                        } else {
+                            layer.msg(data.msg, {
+                                icon: 5
+                            });
+                        }
+                    }, "json"); //一定不要忘了这个json！！！
+                    layer.close(index);
+                });
+            }
+        });
+
+        $('.demoTable .layui-btn').on('click', function(){
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+
+        //弹出添加题目窗口
+        $('#btn-add').click(function() {
+            // alert(t_model_id);
+            layer.open({
+                type: 1,
+                skin: 'layui-layer-rim', //加上边框
+                area: ['660px', '350px'], //宽高
+                content: $('#set-add-qsn'),
+                cancel: function(index, layero) {
+                    $('#input_qus').empty();
+                    layer.close(index)
+                    k = 0;
+                    $('#set-add-qsn input[name="q_detail"]').val("");
+                    $('#set-add-qsn div[name="input_qus"]').empty();
+                    $('#add_op').attr('disabled', true);
+                    $('#add_op').hide();
+                    $('#del_op').attr('disabled', true);
+                    $('#del_op').hide();
+                    return false;
+                }
+            });
+        });
+
+        var k=0;
+        $('#add_op').click(function() {
+            var q_type = $('#q_type').val();
+            if(q_type==1){
+                $('#input_qus').append(
+                        '<div class="layui-input-block" id="qs_radios">'+
+                        '<input type="radio" lay-skin="primary" name="qsr" value="'+(k + 1)+'" title="">'+
+                        '<div class="layui-unselect layui-form-radio"><i class="layui-anim layui-icon"></i></div></div>'
+                );
+            }else if(q_type==2){
+                $('#input_qus').append(
+                        '<div class="layui-input-block" id="qs_radios">'+
+                        '<input type="checkbox" lay-skin="primary" name="qsr[]" value="'+(k + 1)+'" title="">'+
+                        '<div class="layui-unselect layui-form-checkbox" lay-skin="primary"><i class="layui-icon layui-icon-ok"></i></div></div>'
+                );
+            }
+
+            $('#input_qus').append(
+                    '<div class ="layui-input-block" id="qs_details">' +
+                    '<input type = "text" name = "a_detail"  lay-verify="required" placeholder = "请输入答案' + (k + 1) + '" autocomplete = "off" class = "layui-input input_qs" id = "a_detail' + k + '">' +
+                    '</div>'
+            );
+            form.render();
+            k++;
+            //alert(k);
+        });
+
+        $('#add_op').attr('disabled', true);
+        $('#add_op').hide();
+        $('#del_op').attr('disabled', true);
+        $('#del_op').hide();
+
+        $('#del_op').click(function() {
+            $('#input_qus input[name="a_detail"]:eq(' + (k - 1) + ')').remove(); //input_qs的第k个remove
+            $('#input_qus div[id="qs_details"]:eq(' + (k - 1) + ')').remove();
+            $('#input_qus div[id="qs_radios"]:eq(' + (k - 1) + ')').empty();
+            $('#input_qus div[id="qs_radios"]:eq(' + (k - 1) + ')').remove();
+            if ($('#input_qus :eq(' + (k - 1) + ')' != null)) {
+                k--;
+            }
+            if ((k + 1) == 0) {
+                layer.msg("无法删减更多选项了");
+                $('#input_qus').empty();
+                k = 0;
+            }
+            //alert(k);
+        });
+
+        form.on('select()', function(data) {
+            var t_qsn_type = data.value;
+            // alert($('#set-add-qsn select[name="op_type"]').val());
+            $('#input_qus input[name="a_detail"]').remove(); //input_qs的第k个remove
+            $('#input_qus div[id="qs_details"]').remove();
+            $('#input_qus div[id="qs_radios"]').remove();
+            if (t_qsn_type == 3) {
+                $('#add_op').attr('disabled', true);
+                $('#add_op').hide();
+                $('#del_op').attr('disabled', true);
+                $('#del_op').hide();
+                $('#input_qus').append(
+                        '<div class ="layui-input-block" id="qs_details"><input type = "text" name = "a_detail"  lay-verify="required" placeholder = "请输入答案" autocomplete = "off" class = "layui-input input_qs" id = "a_detail"></div>'
+                );
+                $('#input_qus').show();
+                // form.render('select');
+            } else {
+                $('#add_op').attr('disabled', false);
+                $('#add_op').show();
+                $('#del_op').attr('disabled', false);
+                $('#del_op').show();
+                $('#input_qus').show();
+            }
+            k=0;
+        });
+
+        function get_answer(){
+            var q_type = $('#q_type').val();
+            var a_sb ;
+            if(q_type == 1){
+                a_sb = $("input[type='radio']:checked").val();
+            }else if(q_type == 2){
+                var arr_v = new Array();
+                $("input[type='checkbox']:checked").each(function(){
+                    arr_v.push($(this).val());
+                });
+                a_sb = arr_v.join(',');
+            }
+            return a_sb;
+        }
+
+        $('#commit').click(function() { //增加选项
+            var a = [];
+            $("#input_qus input[name='a_detail']").each(function() { //往数组里添加input里获取到的值
+                a.push($(this).val()); //往a数组里添加
+            });
+
+            var content = $('input[name="q_detail"]').val(); //获取值
+            if (content !== '') {
+                //打开正在加载中弹出层
+                layer.msg('加载中', {
+                    icon: 16,
+                    shade: 0.01,
+                    time: '9999999'
+                });
+                var q_type = $('#q_type').val();
+                var url = "{:url( '/index/index/add_question')} ";
+                var q_result = get_answer();
+                var data = {
+                    q_detail: content, //用来存储问题内容
+                    a: a, //用来存储所有问题的数组
+                    q_type: q_type,
+                    q_result: q_result
+
+                }
+                $.post(url, data, function(data) { //确认提交
+                    k = 0;
+                    $('#set-add-qsn input[name="q_detail"]').val("");
+                    $('#set-add-qsn div[name="input_qus"]').empty();
+                    layer.closeAll();
+                    if (data.code == 1) {
+                        layer.msg(data.msg, {
+                            icon: 6
+                        });
+                    } else {
+                        layer.msg(data.msg, {
+                            icon: 5
+                        });
+                    }
+                }, "json ");
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

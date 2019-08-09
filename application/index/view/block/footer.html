@@ -1,0 +1,88 @@
+
+<script src="./static/layui/layui.js"></script>
+<script src="./static/js/jquery-1.11.0.min.js"></script>
+<!--<script src="./static/vip_comm.js"></script>-->
+
+
+<script>
+    //JavaScript代码区域
+    layui.use(['element','form'], function(){
+        var $ = layui.jquery
+                ,element = layui.element
+                ,form = layui.form
+                ; //Tab的切换功能，切换事件监听等，需要依赖element模块
+
+        //刷新界面 所有元素
+        form.render();
+
+        // 监听导航(side-main)点击切换页面
+        element.on('nav(side-main)', function (elem) {
+            // 添加tab方法
+            window.addTab(elem);
+        });
+
+        // 根据导航栏text获取lay-id
+        function getTitleId(card, title) {
+            var id = -1;
+            $(document).find(".layui-tab[lay-filter=" + card + "] ul li").each(function () {
+                if (title === $(this).find('span').html()) {
+                    id = $(this).attr('lay-id');
+                }
+            });
+            return id;
+        }
+
+        // 添加TAB选项卡
+        window.addTab = function (elem, tit, url) {
+            var card = 'card';                                              // 选项卡对象
+            var title = tit ? tit : elem.html();              // 导航栏text
+            var src = url ? url : elem.attr('href-url');      // 导航栏跳转URL
+            var id = new Date().getTime();                                  // ID
+            var flag = getTitleId(card, title);                             // 是否有该选项卡存在
+            // 大于0就是有该选项卡了
+            if (flag > 0) {
+                id = flag;
+                // 切换相应的ID tab
+                element.tabChange(card, id);
+            } else {
+                if (src) {
+                    //新增
+                    element.tabAdd(card, {
+                        title: '<span>' + title + '</span>'
+                        , content: '<iframe src="' + src + '" frameborder="0"></iframe>'
+                        , id: id
+                    });
+                    // 切换相应的ID tab
+                    element.tabChange(card, id);
+                    // 关闭弹窗
+                    layer.closeAll();
+                }
+            }
+
+            // 提示信息
+            // layer.msg(title);
+        };
+
+        $('#logout').click(function(){
+            var url = "{:url('/index/index/clear_session')}";
+            $.ajax({
+                type: "GET",
+                url: url,
+                cache: false,
+                data: {},
+                async: false,
+                error:function(){
+                    layer.msg('退出失败！！！', {
+                        icon: 5
+                    });
+                },success: function (data) {
+                    window.location.reload();
+                }
+            })
+        });
+
+    });
+
+</script>
+</body>
+</html>
